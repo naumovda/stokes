@@ -28,7 +28,7 @@ class Config:
         self.nju = complex(re, im) #показатель преломления
         self.gamma = float(sys.get("Gamma", 45)) # Угол, град
 
-        ivl = self.config['Interval']
+        ivl = self.config['Intervals']
         # Интервалы для контроля параметров
         self.intervals = {}
         self.intervals["U"] = self.parse_interval(ivl.get("U"))
@@ -46,3 +46,8 @@ class Config:
         values = str_value.split(',')
         return {"min":values[0], "max":values[1]}
 
+    def print(self):
+        print("Fi = ", self.fi)
+        print("Gamma = ", self.gamma)
+        print("Nju = ", self.nju)
+        print("Intervals: ", self.intervals)
