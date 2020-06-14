@@ -40,7 +40,7 @@ class TComplex:
             if self.Re > 0:
                 return math.atan(self.Im / self.Re)
             else:
-                return math.pi + atan(self.Im / self.Re)
+                return math.pi + math.atan(self.Im / self.Re)
 
     def SquareRoot(self, Index):
         a = math.sqrt(math.sqrt(self.Re ** 2 + self.Im ** 2))

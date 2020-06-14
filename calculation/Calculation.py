@@ -1,38 +1,91 @@
-from math import sqrt, sin, cos
+from math import *
+# sqrt, sin, cos
 import os
-import Complex # DataModuleUnit
+
+class TIntensity:
+    def __init__(self, i, tau, phi):
+        self._i = i
+        self._tau = tau
+        self._phi = phi
+    
+    @property
+    def i(self):
+        return self._i
+
+    @property
+    def tau(self):
+        return self._tau
+
+    @property
+    def phi(self):
+        return self._phi
+    
+    @i.setter
+    def set_i(self, value):
+        self._i = value
+    
+    @tau.setter
+    def set_tau(self, value):
+        self._tau = value
+
+    @phi.setter
+    def set_phi(self, value):
+        self._phi = value
+
+    def __repr__(self):
+        return f'{self.i}, {self.tau}, {self.phi}'
 
 class TStokesVector:
-    def __init__(self):
-        self.ValueJ = 0.0
-        self.ValueQ = 0.0
-        self.ValueU = 0.0
-        self.ValueV = 0.0
-        # self.ValueP
-        self.ErrorCode = -1
+    def __init__(self, j=0, q=0, u=0, v=0):
+        self._j = 0.0
+        self._q = 0.0
+        self._u = 0.0
+        self._v = 0.0
+        self.error_code = -1
     
-    def GetJ(self):
-        return self.ValueJ
+    @property
+    def j(self):
+        return self._j
 
-    def GetQ(self):
-        return self.ValueQ
+    @j.setter
+    def set_j(self, value):
+        self._j = value
 
-    def GetU(self):
-        return self.ValueU
+    @property
+    def q(self):
+        return self._q
 
-    def GetV(self):
-        return self.ValueV
+    @q.setter
+    def set_q(self, value):
+        self._q = value
 
-    def GetP(self):
-        if abs(self.GetJ()) < 1e-8:
+    @property
+    def u(self):
+        return self._u
+
+    @u.setter
+    def set_u(self, value):
+        self._u = value
+
+    @property
+    def v(self):
+        return self._v
+
+    @v.setter
+    def set_v(self, value):
+        self._v = value
+
+    @property
+    def p(self):
+        if abs(self.j) < 1e-8:
             return 0.0
         else:
-            result = sqrt(self.GetQ() * self.GetQ() + self.GetU() * self.GetU() + self.GetV() * self.GetV()) / self.GetJ()
+            result = sqrt(self.q**2 + self.u**2 + self.v**2) / self.j
             if result > 1:
                 result = 1
             return result
     
-    def Calculate(self, I1, I2, I3, I4, WriteLog):
+    def calculate(self, I1, I2, I3, I4, WriteLog):
         A = [([None] * 5) for _ in range(4)]
         B = X = [None] * 4
 
@@ -58,54 +111,54 @@ class TStokesVector:
                 LogFile.write(f' | {B[i]}\n')
         
         self.ErrorCode = -1
-        self.ValueJ = 0
-        self.ValueQ = 0
-        self.ValueU = 0
-        self.ValueV = 0
+        self.j = 0
+        self.q = 0
+        self.u = 0
+        self.v = 0
 
         if WriteLog:
             LogFile = open('LogPart01.txt', 'w')
             LogFile.writelines(
                 ('Расчет параметров вектора Стокса рассеянного излучения\n',
                 '------------------------------------------------------\n',
-                f'I1 = {I1.GetI()}\n',
-                f'    tau1 = {I1.GetTau()}\n',
-                f'    phi1 = {I1.GetPhi()}\n',
-                f'I2 = {I2.GetI()}\n',
-                f'    tau2 = {I2.GetTau()}\n',
-                f'    phi2 = {I2.GetPhi()}\n',
+                f'I1 = {I1.i}\n',
+                f'    tau1 = {I1.tau}\n',
+                f'    phi1 = {I1.phi}\n',
+                f'I2 = {I2.i}\n',
+                f'    tau2 = {I2.tau}\n',
+                f'    phi2 = {I2.phi}\n',
                 f'I3 = {I3.GetI()}\n',
-                f'    tau3 = {I3.GetTau()}\n',
-                f'    phi3 = {I3.GetPhi()}\n',
-                f'I4 = {I4.GetI()}\n',
-                f'    tau4 = {I4.GetTau()}\n',
-                f'    phi4 = {I4.GetPhi()}\n')
+                f'    tau3 = {I3.tau}\n',
+                f'    phi3 = {I3.phi}\n',
+                f'I4 = {I4.i}\n',
+                f'    tau4 = {I4.tau}\n',
+                f'    phi4 = {I4.phi}\n')
             )
 
-        B[0] = 2 * I1.GetI()
-        B[1] = 2 * I2.GetI()
-        B[2] = 2 * I3.GetI()
-        B[3] = 2 * I4.GetI()
+        B[0] = 2 * I1.i
+        B[1] = 2 * I2.i
+        B[2] = 2 * I3.i
+        B[3] = 2 * I4.i
 
         A[0][0] = 1
         A[1][0] = 1
         A[2][0] = 1
         A[3][0] = 1
 
-        A[0][1] = cos(2 * I1.GetPhi())
-        A[1][1] = cos(2 * I2.GetPhi())
-        A[2][1] = cos(2 * I3.GetPhi())
-        A[3][1] = cos(2 * I4.GetPhi())
+        A[0][1] = cos(2 * I1.phi)
+        A[1][1] = cos(2 * I2.phi)
+        A[2][1] = cos(2 * I3.phi)
+        A[3][1] = cos(2 * I4.phi)
 
-        A[0][2] = sin(2 * I1.GetPhi()) * cos(I1.GetTau())
-        A[1][2] = sin(2 * I2.GetPhi()) * cos(I2.GetTau())
-        A[2][2] = sin(2 * I3.GetPhi()) * cos(I3.GetTau())
-        A[3][2] = sin(2 * I4.GetPhi()) * cos(I4.GetTau())
+        A[0][2] = sin(2 * I1.phi) * cos(I1.tau)
+        A[1][2] = sin(2 * I2.phi) * cos(I2.tau)
+        A[2][2] = sin(2 * I3.phi) * cos(I3.tau)
+        A[3][2] = sin(2 * I4.phi) * cos(I4.tau)
 
-        A[0][3] = sin(2 * I1.GetPhi()) * sin(I1.GetTau())
-        A[1][3] = sin(2 * I2.GetPhi()) * sin(I2.GetTau())
-        A[2][3] = sin(2 * I3.GetPhi()) * sin(I3.GetTau())
-        A[3][3] = sin(2 * I4.GetPhi()) * sin(I4.GetTau())
+        A[0][3] = sin(2 * I1.phi) * sin(I1.tau)
+        A[1][3] = sin(2 * I2.phi) * sin(I2.tau)
+        A[2][3] = sin(2 * I3.phi) * sin(I3.tau)
+        A[3][3] = sin(2 * I4.phi) * sin(I4.tau)
 
         LogMatrix()
 
@@ -144,10 +197,10 @@ class TStokesVector:
                 r += g
             X[k] = (B[k] - r) / A[k][k]
         
-        self.ValueJ = X[0]
-        self.ValueQ = X[1]
-        self.ValueU = X[2]
-        self.ValueV = X[3]
+        self.j = X[0]
+        self.q = X[1]
+        self.u = X[2]
+        self.v = X[3]
 
         if WriteLog:
             LogFile.writelines(
@@ -157,40 +210,56 @@ class TStokesVector:
                 f'U = {X[2]}\n',
                 f'V = {X[3]}\n',
                 '------------------------------------------------------\n',
-                f'P = {self.GetP()}\n',
+                f'P = {self.p}\n',
                 '------------------------------------------------------\n')
             )
             LogFile.close()
         
         self.ErrorCode = 0
 
-        return I1, I2, I3, I4
-
+def SquareRoot(v, index):
+    a = sqrt(v.real**2 + v.imag**2)
+    phi = atan(v.imag/v.real)
+    if v.real < 0:
+        phi += pi
+    if (index < 0) or (index > 1):
+        index = 0
+    if index == 1:
+        phi += pi
+    return complex(a*cos(phi), a*sin(phi))
 
 class TStokesNaturalVector(TStokesVector):
-    def CalculateNatural(StokesVector, WriteLog):
+    def __init__(self, j=0, q=0, u=0, v=0):
+        super.__init__(self, j, q, u, v)
+
+    def calculateNatural(self, vector, nju, phi, WriteLog):
         if WriteLog:            
             LogFile = open('LogPart02.txt', 'w')            
             LogFile.writelines(
                 ('Расчет параметров вектора Стокса естественного излучения\n',
                 '------------------------------------------------------\n',
                 'Вектор Стокса рассеянного излучения\n',
-                f'    J = {StokesVector.GetJ()}\n',
-                f'    Q = {StokesVector.GetQ()}\n',
-                f'    U = {StokesVector.GetU()}\n',
-                f'    V = {StokesVector.GetV()}\n',
-                f'    P = {StokesVector.GetP()}\n')
+                f'    J = {vector.j}\n',
+                f'    Q = {vector.q}\n',
+                f'    U = {vector.u}\n',
+                f'    V = {vector.v}\n',
+                f'    P = {vector.p}\n')
             )
         
-        nju = DataModuleUnit.dmPublic.Nju
-        nju2 = nju * nju
-        cosphi = Complex.TComplex(cos(DataModuleUnit.dmPublic.Phi / 180 ), 0)
-        sinphi = Complex.TComplex(sin(DataModuleUnit.dmPublic.Phi / 180 ), 0)
+        nju2 = nju**2
+        
+        cphi = cos(phi/180.0)
+        sphi = sin(phi/180.0)
+        cosphi = complex(cphi, 0)
+        sinphi = complex(sphi, 0)             
+
         sinphi2 = sinphi * sinphi
         sn = nju2 - sinphi2
-        sq = sn.SquareRoot(0)
-        if sq.Image > 0:
-            sq = sn.SquareRoot(1)
+
+        sq = SquareRoot(sn, 0)        
+        if sq.imag > 0:
+            sq = SquareRoot(sn, 1)
+
         ch1 = cosphi - sq
         zn1 = cosphi + sq
         nju2cosphi = nju2 * cosphi
@@ -199,86 +268,45 @@ class TStokesNaturalVector(TStokesVector):
         r1 = ch1 / zn1
         r2 = ch2 / zn2
 
-        r1_2 = r1.Module() ** 2
-        r2_2 = r2.Module() ** 2
-        r1r2_ = r1 * r2.Covariant()
-        r1r2_2 = r1r2_.Module() ** 2
+        r1_2 = abs(r1) ** 2
+        r2_2 = abs(r2) ** 2
+        r1r2_ = r1 * r2.conjugate()
+        r1r2_2 = abs(r1r2_) ** 2
 
-        self.ValueJ = (StokesVector.GetJ() * (r1_2 + r2_2) - StokesVector.GetQ() * (r1_2 - r2_2)) / (2 * r1_2 * r2_2)
-        self.ValueQ = (StokesVector.GetQ() * (r1_2 + r2_2) - StokesVector.GetJ * (r1_2 - r2_2)) / (2 * r1_2 * r2_2)
-        self.ValueU = (StokesVector.GetU() * r1r2_.Real() + StokesVector.GetV() * r1r2_.Image()) / r1r2_2
-        self.ValueV = (StokesVector.GetV() * r1r2_.Real() - StokesVector.GetU() * r1r2_.Image()) / r1r2_2
+        self.j = (vector.GetJ() * (r1_2 + r2_2) - vector.GetQ() * (r1_2 - r2_2)) / (2 * r1_2 * r2_2)
+        self.q = (vector.GetQ() * (r1_2 + r2_2) - vector.GetJ * (r1_2 - r2_2)) / (2 * r1_2 * r2_2)
+        self.u = (vector.GetU() * r1r2_.Real() + vector.GetV() * r1r2_.Image()) / r1r2_2
+        self.v = (vector.GetV() * r1r2_.Real() - vector.GetU() * r1r2_.Image()) / r1r2_2
         
         if WriteLog:
             LogFile.writelines(
             ('Исходные параметры\n',
             '------------------------------------------------------\n',
-            f' Phi                    = {DataModuleUnit.dmPublic.Phi} град.\n',
-            f' Nju                    = ({nju.Real()}, {nju.Image()})\n',
+            f' Phi                    = {phi} град.\n',
+            f' Nju                    = ({nju.real}, {nju.imag})\n',
             '------------------------------------------------------\n',
             'Промежуточные переменные\n',
             '------------------------------------------------------\n',
-            f' Nju^2                  = ({nju2.Real()}, {nju2.Image()})\n',
-            f' Nju^2-sin(Phi)^2       = ({sn.Real()}, {sn.Image()})\n',
-            f' SQRT(Nju^2-sin(Phi)^2) = ({sq.Real()}, {sq.Image()})\n',
-            f' r1                     = ({r1.Real()}, {r1.Image()})\n',
-            f' r2                     = ({r2.Real()}, {r2.Image()})\n',
+            f' Nju^2                  = ({nju2.real}, {nju2.imag})\n',
+            f' Nju^2-sin(Phi)^2       = ({sn.real}, {sn.imag})\n',
+            f' SQRT(Nju^2-sin(Phi)^2) = ({sq.real}, {sq.imag})\n',
+            f' r1                     = ({r1.real}, {r1.imag})\n',
+            f' r2                     = ({r2.real}, {r2.imag})\n',
 
             f' |r1|^2                 = {r1_2}\n',
             f' |r2|^2                 = {r2_2}\n',
 
-            f' r1*_r2                 = {r1r2_.Real()}, {r1r2_.Image()})\n',
+            f' r1*_r2                 = {r1r2_.real}, {r1r2_.imag})\n',
             f' |r1*_r2|^2             = {r1r2_2}\n',
             '------------------------------------------------------\n',
             'Вектор Стокса естественного излучения\n',
-            f'  J0                    = {GetJ()}\n',
-            f'  Q0                    = {GetQ()}\n',
-            f'  U0                    = {GetU()}\n',
-            f'  V0                    = {GetV()}\n',
-            f'  P0                    = {GetP()}\n')
+            f'  J0                    = {self.j}\n',
+            f'  Q0                    = {self.q}\n',
+            f'  U0                    = {self.u}\n',
+            f'  V0                    = {self.v}\n',
+            f'  P0                    = {self.p}\n')
             )
             LogFile.close()
 
-
-class TIntensity:
-    def __init__(self, aI, aTau, aPhi):
-        self.SetI(aI)
-        self.SetTau(aTau)
-        self.SetPhi(aPhi)
-        os.chdir(os.path.dirname(__file__))
-    
-    def GetI(self):
-        return self.ValueI
-    
-    def GetTau(self):
-        return self.ValueTau
-    
-    def GetPhi(self):
-        return self.ValuePhi
-    
-    def SetI(self, aValue):
-        self.ValueI = aValue
-    
-    def SetTau(self, aValue):
-        self.ValueTau = aValue
-    
-    def SetPhi(self, aValue):
-        self.ValuePhi = aValue
-    
-    if __name__ == '__main__':
-        def __repr__(self):
-            return f'{self.GetI()}, {self.GetTau()}, {self.GetPhi()}'
-
-
 if __name__ == '__main__':
-    from random import randrange
-
-    def getRandom():
-        return tuple([randrange(-5, 5) for _ in range(3)])
-    
-    I = []
-
-    for _ in range(4):
-        I.append(TIntensity(*getRandom()))
-    
-    print(TStokesVector().Calculate(*I, True))
+    pass
