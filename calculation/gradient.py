@@ -1,7 +1,7 @@
 from math import sin, cos, pi, sqrt
 
 class Gradient:
-    def __init__(self, GAMMA=Pi/4, W=0.77, V=-0.3):
+    def __init__(self, GAMMA=pi/4, W=0.77, V=-0.3):
         self.GAMMA = GAMMA
         self.W = W
         self.V = V
@@ -11,14 +11,14 @@ class Gradient:
         + (sin(2 * x) * cos(2 * y) + cos(self.GAMMA) * cos(2 * x) * sin(2 * y) - self.V) ** 2
 
     def dFdx(self, x, y):
-        return 4 * cos(2 * x) * cos(self.GAMMA) * sin(2 * y) * W + 4 * cos(self.GAMMA) \
+        return 4 * cos(2 * x) * cos(self.GAMMA) * sin(2 * y) * self.W + 4 * cos(self.GAMMA) \
             * sin(2 * x) * sin(2 * y) * self.V \
         - 4 * cos(2 * x) * cos(2 * y) * self.V + 4 * cos(2 * y) * sin(2 * x) * self.W
 
     def dFdy(self, x, y):
         return - 4 * cos(2 * x) * cos(2 * y) * cos(self.GAMMA) * self.V \
         + 4 * cos(2 * y) * cos(self.GAMMA) * cos(self.GAMMA) * sin(2 * y) \
-        + 4 * cos(2 * y) * cos(self.GAMMA) * sin(2 * x) * self.W 
+        + 4 * cos(2 * y) * cos(self.GAMMA) * sin(2 * x) * self.W  \
         + 4 * cos(2 * x) * sin(2 * y) * self.W \
         + 4 * sin(2 * x) * sin(2 * y) * self.V - 4 * cos(2 * y) * sin(2 * y)
 
@@ -49,8 +49,10 @@ class Gradient:
 
 if __name__ == '__main__':
     g = Gradient()
-    a = 2; b = 3; e = 4
-    print(f'F({a}, {b}) = {g.F(a, b)}')
+    a = 2
+    b = 3
+    e = 4
+    print(f'F({a}, {b}) = {g.Fxy(a, b)}')
     print(f'dFdx({a}, {b}) = {g.dFdx(2, 3)}')
     print(f'dFdy({a}, {b}) = {g.dFdy(2, 3)}')
     print(f'GradientMethod({a}, {b}, {e}) = {g.GradientMethod(2, 3, 4)}')

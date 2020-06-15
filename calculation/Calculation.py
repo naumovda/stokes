@@ -1,5 +1,4 @@
-from math import *
-# sqrt, sin, cos
+from math import sqrt, sin, cos, pi, atan
 import os
 
 class TIntensity:
