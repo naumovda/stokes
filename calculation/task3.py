@@ -342,10 +342,13 @@ def calcPlaneMaterial(data, materials, planeType, writeLog):
             ParamCount = count // 2
             i2 = round(count/2)
 
-#     Writeln(LogFile, '------------------------------------------------------');
-#     Writeln(LogFile, 'начальный индекс i1  = ', 0);
-#     Writeln(LogFile, 'начальный индекс i2  = ', i2);
-#     Writeln(LogFile, 'количество уравнений = ', ParamCount);
+    if writeLog:
+        LogFile.writelines(
+            '------------------------------------------------------\n',
+            'начальный индекс i1  = 0\n',
+            f'начальный индекс i2  = {i2}\n',
+            f'количество уравнений = {ParamCount}' 
+        )
 
         params = []
         for _ in range(ParamCount):
@@ -358,15 +361,22 @@ def calcPlaneMaterial(data, materials, planeType, writeLog):
             if i >= i2:
                 params[i].Tetta2 = data.Tetta
                 params[i].A2 = data.N
-            #     Writeln(LogFile, '------------------------------------------------------');
-            #     Writeln(LogFile, '№':10, 'Tetta1':10, 'A1':10, 'Tetta2':10, 'A2':10, 'V':10, 'U':10);
-            #     Writeln(LogFile, '------------------------------------------------------');
+
+        if writeLog:
+            LogFile.writelines(
+                '------------------------------------------------------\n',
+                'Tetta1, A1, Tetta2, A2, V, U\n',
+                '------------------------------------------------------\n',                    
+            )
         
         u_mid = 0
         v_mid = 0
         c_mid = 0
         for item in params:
-            # Write(LogFile, i:10, Params[i].Tetta1:10:4, Params[i].A1:10:4, Params[i].Tetta2:10:4, Params[i].A2:10:4);
+            if writeLog:
+                LogFile.writelines(
+                    f'{item.Tetta1}, {item.A1}, {item.Tetta2}, {item.A2}\n'
+                )            
             d1 = det2(
                 item.A1**4 + item.A1*sin(item.Tetta1*pi/180)**2,
                 item.A2**4 + item.A2*sin(item.Tetta2*pi/180)**2,
@@ -376,8 +386,10 @@ def calcPlaneMaterial(data, materials, planeType, writeLog):
             d2 = det2(1, 1, item.A1**2, item.A2**2)
 
             if d1/d2 <0:
-                #  Writeln(LogFile, ' невозможно вычислить V, так как V*V = ', FloatToStrF(d1 / d2, ffFixed, 10, 2))
-                pass
+                if writeLog:
+                    LogFile.writelines(
+                        f' невозможно вычислить V, так как V*V = {d1/d2}\n'
+                    )                   
             else:
                 v = sqrt(d1/d2)
                 d3 = det2(
@@ -392,39 +404,38 @@ def calcPlaneMaterial(data, materials, planeType, writeLog):
                 v_mid += v
                 u_mid += u
                 c_mid += 1
-                # Writeln(LogFile, V:10:4, U:10:4);                
+                if writeLog:
+                    LogFile.writelines(f'V={v}, U={u}\n')                   
             else:
-                pass
-                # Writeln(LogFile, ' система уравнений имеет неустойчивое решение!');          
+                if writeLog:
+                    LogFile.writelines(f'система уравнений имеет неустойчивое решение!\n')
         v_mid /= c_mid
         u_mid /=c_mid
 
         re = sqrt((u_mid + sqrt(u_mid**2 + 4*v_mid**2))/2)
         coef = complex(re, -v_mid/re)
 
-        #     Writeln(LogFile, '------------------------------------------------------');
-        #     Writeln(LogFile, 'Vmid = ', Vmid:10:4);
-        #     Writeln(LogFile, 'Umid = ', Umid:10:4);
-        #     Writeln(LogFile, '------------------------------------------------------');
-        #     Writeln(LogFile, 'Коэффициент преломления:');
-        #     Writeln(LogFile, 'Re=', ReCoef:10:4);
-        #     Writeln(LogFile, 'Im=', ImCoef:10:4);
-
+        if writeLog:
+            LogFile.writelines(
+                '------------------------------------------------------\n',
+                ' Vmid = {Vmid}\n',
+                ' Umid = {Umid}\n', 
+                '------------------------------------------------------\n', 
+                'Коэффициент преломления:\n',
+                'Re={coef.real}:\n',
+                'Im={coef.imag}:\n',
+                '------------------------------------------------------\n'
+            )
     else:
         pass
 
     if writeLog:
         LogFile.writelines(f'Коэффициент преломления: {coef}') 
 
-    # ищем в массиве материалов
-
     idx = 0
     length = 1e+38
-        #   Writeln(LogFile, '------------------------------------------------------');
-        #   Writeln(LogFile, 'Материалы':50, ' ', 'Коэффициент');
     for item in materials:
         item = TMaterial('','',0,0,0,0)
-        #     Writeln(LogFile, RefractCoef[i].MaterialName:50, ' ', RefractCoef[i].CoefLabel);
         item.length = len2rect(
             coef.real, coef.imag, 
             item.re_min, item.re_max,
@@ -434,12 +445,13 @@ def calcPlaneMaterial(data, materials, planeType, writeLog):
             idx, length = i, item.length
         idx += 1
 
-#   Writeln(LogFile, '------------------------------------------------------');
-#   Writeln(LogFile, 'Наиболее близкий по характеристике материал к ':50, ' ('
-#     + FloatToStrF(ReCoef, ffFixed, 10, 2) + ';'
-#     + FloatToStrF(ImCoef, ffFixed, 10, 2) +')');
-#   Writeln(LogFile, RefractCoef[MinIndex].MaterialName:50, ' ',
-#     RefractCoef[MinIndex].CoefLabel);
+    if writeLog:
+        LogFile.writelines(
+            '------------------------------------------------------\n',
+            f'Наиболее близкий по характеристике материал к Re={coef.real}, Im={coef.imag}:\n',
+            f'{materials[idx].name}\n',
+            f'{materials[idx].label}\n'
+        ) 
 
     LogFile.close()
 
