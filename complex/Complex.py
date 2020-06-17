@@ -53,44 +53,11 @@ class TComplex:
             phi += math.pi
         return TComplex(a * math.cos(phi), a * math.sin(phi))
 
-    def LengthToRectangle(self, ReMin, ReMax, ImMin, ImMax):
-        x1 = min(ReMin, ReMax)
-        x2 = max(ReMin, ReMax)
-        y1 = min(ImMin, ImMax)
-        y2 = max(ImMin, ImMax)
-
-        """
-        1 | 2 | 3
-        4 | - | 5
-        6 | 7 | 8
-        """
-
-        if (self.Re >= x1) and (self.Re <= x2) and (self.Im >= y1) and (self.Im <= y2):
-            return 0
-        elif self.Re < x1:
-            if self.Im > y2:
-                return math.sqrt((self.Re - x1) ** 2 + (self.Im - y2) ** 2)
-            elif self.Im < y1:
-                return math.sqrt((self.Re - x1) ** 2 + (self.Im - y1) ** 2)
-            else:
-                return abs(self.Re - x1)
-        elif self.Re > x2:
-            if self.Im > y2:
-                return math.sqrt((self.Re - x2) ** 2 + (self.Im - y2) ** 2)
-            elif self.Im < y1:
-                return math.sqrt((self.Re - x2) ** 2 + (self.Im - y1) ** 2)
-            else:
-                return abs(self.Re - x2)
-        else:
-            return min(abs(self.Im - y1), abs(self.Im - y2))
-
 def Equal(A, B, Eps):
     if abs(A - B) < abs(Eps):
         return True
     else:
         return False
-
-# Test
 
 if __name__ == '__main__':
     complex_num_1 = TComplex(0.1, 0.8)
@@ -126,6 +93,3 @@ if __name__ == '__main__':
 
     complex_root = complex_num_1.SquareRoot(Index = 0)
     print(f"Атрибуты Re и Im после вычисления корня: {complex_root.Real()}, {complex_root.Image()}")
-
-    LtR = complex_num_1.LengthToRectangle(-1, 5, 0.3, 1)
-    print("Результат вызова метода LengthToRectangle: ", LtR)
