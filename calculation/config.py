@@ -11,15 +11,30 @@ class Config:
                     q or ESC     = Exit
             '''))
 
-        parser.add_argument('-f', '--file',
-                            dest='file',
+        parser.add_argument('-c', '--config',
+                            dest='cfg_file',
                             default='config/basic.ini',
                             help='configuration file')
+
+        parser.add_argument('-t', '--task',
+                            dest='task',
+                            default='1',
+                            help='task to start (1, 2 or 3)')
+
+        parser.add_argument('-f', '--file',
+                            dest='file',
+                            default='/data/csv/calculation.csv',
+                            help='file to load')
+
+        parser.add_argument('-m', '--material',
+                            dest='material',
+                            default='/data/csv/MaterialRefraction.csv',
+                            help='material file to load')
 
         args = parser.parse_args()
 
         self.config = configparser.ConfigParser()
-        self.config.read(args.file)
+        self.config.read(args.cfg_file)
 
         sys = self.config['Common']      
         self.fi = float(sys.get("Fi", 52)) # Угол падения, град

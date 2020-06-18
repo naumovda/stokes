@@ -619,6 +619,6 @@ def test_Task04():
         writeLog=True, logFileName='LogPart05_test01.txt')    
     # print(idx, material)
 
-if __name__ == "__main__":   
+if __name__ == "__main__":
     test_Task03() 
-    test_Task04() 
+    test_Task04()    
