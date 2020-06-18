@@ -1,6 +1,9 @@
+import os
+import csv
+
 from math import pi, sin, cos, tan, exp, sqrt
 from statistics import mean, stdev
-from Laplace import Laplace
+from laplace import Laplace
 
 def det2(a11, a21, a12, a22):
   return a11*a22 - a21*a12
@@ -75,12 +78,15 @@ class itemC1:
         self.U = U
         self.V = V
 
+    def calc(self):
         if self.V != 0:
-            self.value = (Q*sin(2*dTetta*pi/180) + U*cos(2*dTetta*pi/180))/V
+            self.value = (self.Q*sin(2*self.dTetta*pi/180) \
+                + self.U*cos(2*self.dTetta*pi/180))/self.V
             self.is_calc = True
         else:
-            self.value = 0
+            self.value = None
             self.is_calc = False
+        return self.value
 
 class itemC2:
     def __init__(self, dGamma, Q, U, V):
@@ -90,11 +96,12 @@ class itemC2:
         self.U = U
         self.V = V
 
+    def calc(self):
         if self.V != 0:
-            self.value = U/V
+            self.value = self.U/self.V
             self.is_calc = True
         else:
-            self.value = 0
+            self.value = None
             self.is_calc = False
 
 class itemC3:
@@ -103,7 +110,10 @@ class itemC3:
         self.dGamma = dGamma
         self.Alfa = Alfa
         self.Beta = Beta
-        self.value = Alfa*Beta
+        self.is_calc = False
+    
+    def calc(self):
+        self.value = self.Alfa*self.Beta        
         self.is_calc = True
 
 class TInterval:
@@ -123,21 +133,20 @@ class TInterval:
 
 def getIntervals(icount, imax, imin):
     length = (imax - imin) / icount
-
-    intervals = [TInterval() for _ in range(icount)]
+    intervals = [] #[TInterval() for _ in range(icount)]
     for i in range(icount):
-        intervals[i].Number = i
-        intervals[i].ValueCount = 0
-        intervals[i].Low = imin + i * length
-        intervals[i].High = imin + (i + 1) * length
-        intervals[i].LaplaceValueLow = Laplace(intervals[i].Low)
-        intervals[i].LaplaceValueHigh = Laplace(intervals[i].High)
-        intervals[i].Pi = intervals[i].LaplaceValueHigh - intervals[i].LaplaceValueLow
-    
+        item = TInterval()
+        item.Number = i
+        item.ValueCount = 0
+        item.Low = imin + i * length
+        item.High = imin + (i + 1) * length
+        item.LaplaceValueLow = Laplace(item.Low)
+        item.LaplaceValueHigh = Laplace(item.High)
+        item.Pi = item.LaplaceValueHigh - item.LaplaceValueLow
+        intervals.append(item)
     return intervals
 
-
-def CalcStat(data):
+def calcStat(data):
     stat = {}
 
     countP = sum([1 for item in data if item.is_calc])
@@ -177,11 +186,13 @@ def CalcStat(data):
     stat[9] = ('Максимальное (норм)', max_n)
 
     intervals = getIntervals(TInterval.INTERVAL_COUNT, max_n, min_n)
+    # for item in intervals:
+    #     print(item.Number, item.Low, item.High)
 
     SumProb = sum([item.Pi for item in intervals])
     
     for item in data_n:
-        value = round(item.value, 2)
+        value = round(item.value_norm, 2)
         index_f = -1
         for j in range(len(intervals)):
             if abs(value - intervals[j].High) < 1e-3:
@@ -212,20 +223,20 @@ def CalcStat(data):
             index = 0
         intervals[index].ValueCount += 1
     
-    i = 10
+    i = 0
     for item in intervals:
         item.NPi = count_n*item.Pi/SumProb
         item.Ni_NPi = (item.ValueCount - item.NPi) ** 2
         item.Ni_NPi_Norm = item.Ni_NPi / item.NPi    
 
-        stat[i] = (f'Pi[{i}]', item.Pi)
-        stat[i+1] = (f'N[{i}]', item.ValueCount)
+        stat[10+2*i] = (f'Pi[{i}]', item.Pi)
+        stat[10+2*i+1] = (f'N[{i}]', item.ValueCount)
         i += 2
     
     SumHi = sum([item.Ni_NPi_Norm for item in intervals])
 
     # InvChiSquareDistribution(IntervalCount - 3, 0.05);
-    SumHiTeor = chi2P(0.05, TInterval.INTERVAL_COUNT)
+    SumHiTeor = chi2P(0.05, TInterval.INTERVAL_COUNT-3)
 
     stat[i] = (f'Хи-квадрат (эмп.)', SumHi)
     stat[i+1] = (f'Хи-квадрат (теор.)', SumHiTeor)
@@ -233,9 +244,14 @@ def CalcStat(data):
 
     midE = mean([item.value for item in data if item.is_calc])
     sdE = stdev([item.value for item in data if item.is_calc])    
-    Ek = max([abs(item.value - midE) for item in data])
+    Ek = max([abs(item.value - midE) for item in data if item.is_calc])
     Tk = Ek / sdE
     FTk = 2*Laplace(Tk)
+
+    stat[i] = ('Ek', Ek)
+    stat[i+1] = ('Tk', Tk)
+    stat[i+2] = ('Ф(Tk)', FTk)
+    # i += 3
     
     return FTk, stat
 
@@ -456,3 +472,111 @@ def calcPlaneMaterial(data, materials, planeType, writeLog):
     LogFile.close()
 
     return idx, materials[idx]
+
+def loadC1(filename):
+    """
+    Read a C1.CSV file using csv.DictReader
+    """
+    data = []
+    with open(filename) as f_obj:
+        reader = csv.DictReader(f_obj, delimiter=';')
+        for line in reader:
+            dTetta = float(line['dTetta'])
+            Q = float(line['Q'])
+            U = float(line['U'])
+            V = float(line['V'])
+            item = itemC1(dTetta, Q, U, V)
+            item.calc()
+            data.append(item)
+    return data
+
+def loadC2(filename):
+    """
+    Read a C2.CSV file using csv.DictReader
+    """
+    data = []
+    with open(filename) as f_obj:
+        reader = csv.DictReader(f_obj, delimiter=';')
+        for line in reader:
+            # dGamma, Q, U, V
+            dGamma = float(line['dGamma'])
+            Q = float(line['Q'])
+            U = float(line['U'])
+            V = float(line['V'])
+            item = itemC2(dGamma, Q, U, V)
+            item.calc()
+            data.append(item)
+    return data
+
+def loadC3(filename):
+    """
+    Read a C3.CSV file using csv.DictReader
+    """
+    data = []
+    with open(filename) as f_obj:
+        reader = csv.DictReader(f_obj, delimiter=';')
+        for line in reader:
+            # dGamma, Alfa, Beta
+            dGamma = float(line['dGamma'])
+            Alfa = float(line['Alfa'])
+            Beta = float(line['Beta'])
+            item = itemC3(dGamma, Alfa, Beta)
+            item.calc()
+            data.append(item)
+    return data    
+
+def loadMaterial(filename):
+    """
+    Read a MaterialRefraction.CSV file using csv.DictReader
+    """
+    data = []
+    with open(filename, encoding="utf-8") as f_obj:
+        reader = csv.DictReader(f_obj, delimiter=';')
+        for line in reader:
+            name = line['MaterialName'] 
+            re_min = float(line['ReValueMin'])
+            re_max = float(line['ReValueMax'])
+            im_min = float(line['ImValueMin'])
+            im_max = float(line['ImValueMax'])
+            label = f'({re_min:0.2f}..{re_max:0.2f})+({im_min:0.2f}..{im_max:0.2f})j'
+            item = TMaterial(name, label, re_min, re_max, im_min, im_max)
+            data.append(item)
+    return data 
+
+def printStat(stat, filename, mode='w', title=None):
+    LogFile = open(filename, mode, encoding="utf-8")   
+    if title != None:
+        LogFile.writelines(f'{title}\n')
+    for key in sorted(stat.keys()):
+        LogFile.writelines(f'{stat[key][0]}:\t{stat[key][1]:0.4f}\n')
+    LogFile.writelines('-'*60+'\n')        
+    LogFile.close()
+
+def calcTask3(data, nju, phi, WriteLog=False, Idx=None):
+    for item in data:
+        if (Idx == None) or (item.Idx == Idx):
+            pass
+            # item.calcRadiation(nju, phi, WriteLog)
+
+if __name__ == "__main__":
+    os.chdir(os.path.dirname(__file__))     
+
+    c1 = loadC1('../data/csv/C1.csv')
+    c2 = loadC2('../data/csv/C2.csv')
+    c3 = loadC3('../data/csv/C3.csv')
+
+    p1, s1 = calcStat([item for item in c1 if item.value != None])
+    p2, s2 = calcStat([item for item in c2 if item.value != None])
+    p3, s3 = calcStat([item for item in c3 if item.value != None])
+
+    filename = 'LogPart04.txt'
+    
+    printStat(s1, filename, 'w', 'Расчет признака С1')
+    printStat(s2, filename, 'a', 'Расчет признака С2')
+    printStat(s3, filename, 'a', 'Расчет признака С3')
+
+    LogFile = open(filename, 'a', encoding="utf-8")   
+    LogFile.writelines(f'Вероятность попадания объекта в класс = {p1*p2*p3:0.4f}')
+    LogFile.close()
+
+    # materials = loadMaterial('../data/csv/MaterialRefraction.csv')
