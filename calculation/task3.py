@@ -620,5 +620,5 @@ def test_Task04():
     # print(idx, material)
 
 if __name__ == "__main__":   
-    # test_Task03() 
+    test_Task03() 
     test_Task04() 

@@ -1,8 +1,9 @@
+import os
+
 from mpl_toolkits import mplot3d
 from matplotlib import cm
 import matplotlib.pyplot as plt
 import pandas as pd
-
 
 def plot_3d(data, x, y, z):
     ax = plt.axes(projection="3d")
@@ -15,9 +16,10 @@ def plot_3d(data, x, y, z):
 
     return ax
 
-
 if __name__ == "__main__":
-    df = pd.read_csv("Calculation.csv", sep=";")
+    os.chdir(os.path.dirname(__file__))    
+
+    df = pd.read_csv("../data/csv/calculation.csv", sep=";")
     fig = plt.figure(figsize=(14, 8))
     ax = plot_3d(df, x="Beta", y="Alfa", z="J")
     plt.show()
