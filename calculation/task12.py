@@ -190,17 +190,15 @@ def loadTask12(filename):
             data.append(item)
     return data
 
-def calcTask1(data, nju, phi, WriteLog=False):
+def calcTask1(data, nju, phi, WriteLog=False, Idx=None):
     for item in data:
-        if item.Idx == 174:
+        if (Idx == None) or (item.Idx == Idx):
             item.calcRadiation(nju, phi, WriteLog)
-        # break
 
-def calcTask2(data, nju, phi, gradient, isAnalitic=True, WriteLog=False):
+def calcTask2(data, nju, phi, gradient, isAnalitic=True, WriteLog=False, Idx=None):
     for item in data:
-        if item.Idx == 174:
+        if (Idx == None) or (item.Idx == Idx):
             item.calcReflection(nju, phi, gradient, isAnalitic, WriteLog)
-        # break
 
 if __name__ == '__main__':  
     os.chdir(os.path.dirname(__file__))     
@@ -210,5 +208,5 @@ if __name__ == '__main__':
     phi = 52
     g = Gradient()
 
-    calcTask1(data, nju, phi, True) 
-    calcTask2(data, nju, phi, g, WriteLog=True)
+    calcTask1(data, nju, phi, True, Idx=174) 
+    calcTask2(data, nju, phi, g, WriteLog=True, Idx=174)
