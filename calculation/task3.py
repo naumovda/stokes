@@ -271,7 +271,7 @@ class TMaterial:
 
 def calcPlaneMaterial(data, materials, planeType, writeLog):
     if writeLog:
-        LogFile = open('LogPart03.txt', 'w')
+        LogFile = open('LogPart05.txt', 'w')
         LogFile.writelines(
             'Определение материала покрытия\n',
             '------------------------------------------------------\n'
